@@ -1,3 +1,4 @@
+/* Hazel Tune™ · Copyright © 2026 Hazel Management LLC. All rights reserved. Proprietary — see LICENSE. */
 (function(){
 const $=id=>document.getElementById(id);
 const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'],BLK=[1,3,6,8,10];

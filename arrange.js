@@ -1,3 +1,4 @@
+/* Hazel Tune™ · Copyright © 2026 Hazel Management LLC. All rights reserved. Proprietary — see LICENSE. */
 (function(){
 /* Song → Piano: listen to any song and build a rough two-hand "dueling piano" version.
    Left hand turns the drums into a stride bass (root on the kick, chord on the snare),

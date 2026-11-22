@@ -1,3 +1,4 @@
+/* Hazel Tune™ · Copyright © 2026 Hazel Management LLC. All rights reserved. Proprietary — see LICENSE. */
 (function(){
 /* Follow-along "sheet music" mode for piano and guitar, plus Send a tune. */
 const $=id=>document.getElementById(id),H=window.HZ;

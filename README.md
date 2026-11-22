@@ -4,4 +4,4 @@ A guitar tuner for 6- and 12-string guitars, plus a piano and guitar trainer: fo
 
 Open it on your phone, tap **Start tuning**, allow the microphone, and pluck a string. To install it like an app on iPhone: open the link in Safari → Share → **Add to Home Screen**.
 
-© Hazel Management LLC. All rights reserved.
+Hazel Tune™ © 2026 Hazel Management LLC. All rights reserved. This is proprietary software — see [LICENSE](LICENSE). No permission is granted to copy, modify or redistribute it.
