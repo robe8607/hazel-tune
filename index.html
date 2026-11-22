@@ -108,7 +108,7 @@ footer{text-align:center;font-size:11px;letter-spacing:.18em;color:#6f6352;text-
   </div>
   <div class="row"><button class="btn" id="resetBtn" style="font-size:14px;padding:11px">Reset checkmarks</button></div>
 
-  <footer id="foot">Hazel Management · Standard tuning E A D G B E</footer>
+  <footer id="foot">Hazel Management · Standard tuning E A D G B E · v1.2</footer>
 </div>
 
 <script>
@@ -174,7 +174,7 @@ function paintHead(){STR.forEach((s,i)=>{const g=H.pegs[i],st=H.strs[i];if(!g)re
 function build(){buildHead();
  document.querySelectorAll('.mode').forEach(m=>m.classList.toggle('on',(m.dataset.m==='12')===twelve));
  $('tip12').style.display=twelve?'block':'none';
- $('foot').textContent=twelve?'Hazel Management · 12-string standard tuning':'Hazel Management · Standard tuning E A D G B E';}
+ $('foot').textContent=twelve?'Hazel Management · 12-string standard tuning · v1.2':'Hazel Management · Standard tuning E A D G B E · v1.2';}
 function setMode(m){twelve=m;STR=twelve?STR12:STR6;done=STR.map(()=>0);sel=0;live=-1;act={i:-1,col:null,dir:0};hist=[];inSince=0;try{localStorage.setItem('hazelTuneMode',twelve?'12':'6');}catch(e){}build();paint();}
 document.querySelectorAll('.mode').forEach(m=>m.onclick=()=>setMode(m.dataset.m==='12'));
 build();
@@ -232,7 +232,7 @@ function pluck(f){try{ctx=ctx||new (window.AudioContext||window.webkitAudioConte
 $('refBtn').onclick=()=>{let i=auto?(live>=0?live:(nextUntuned()??0)):sel;pluck(STR[i].f);$('hint').textContent='Playing '+label(i);if(!timer){act={i:i,col:'#d4a94f',dir:0};paint();setTimeout(()=>{if(!timer){act={i:-1,col:null,dir:0};paint();}},2500);}};
 
 paint();
-try{if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});}catch(e){}
+try{if('serviceWorker' in navigator&&location.protocol==='https:'){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!window.__hzr){window.__hzr=1;location.reload();}});navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{r.update();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')r.update();});}).catch(()=>{});}}catch(e){}
 </script>
 </body>
 </html>
