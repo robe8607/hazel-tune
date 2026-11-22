@@ -1,0 +1,16 @@
+{
+  "name": "Hazel Tune",
+  "short_name": "Hazel Tune",
+  "description": "Hazel's guitar tuner for 6- and 12-string guitars",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#15110c",
+  "theme_color": "#15110c",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
