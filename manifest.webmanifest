@@ -1,7 +1,7 @@
 {
   "name": "Hazel Tune",
   "short_name": "Hazel Tune",
-  "description": "Hazel's guitar tuner for 6- and 12-string guitars",
+  "description": "Hazel Tune: guitar tuner and piano trainer",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

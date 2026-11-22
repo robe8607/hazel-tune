@@ -49,6 +49,35 @@ header{display:flex;align-items:center;justify-content:space-between}
 #head .lab2{font-family:Outfit,sans-serif;font-size:10px;fill:#a89a84;text-anchor:middle}
 @keyframes twist{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.35)}}
 @keyframes buzz{0%{transform:translateX(0)}50%{transform:translateX(.8px)}100%{transform:translateX(0)}}
+.tab{font-family:inherit;font-size:15px;font-weight:500;padding:10px;border:0;border-radius:10px;background:transparent;color:var(--muted);cursor:pointer}
+.tab.on{background:var(--cream);color:#1b140b}
+#tunerView,#pianoView{display:flex;flex-direction:column;gap:18px}
+.prow{display:flex;gap:10px;align-items:center}
+.prow select{flex:1;font-family:inherit;font-size:15px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--cream)}
+.chk{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.pnow{font-size:34px;font-weight:500;text-align:center;margin-top:14px;color:var(--gold)}
+.pstat{font-size:14px;color:var(--muted);text-align:center;margin-top:4px;min-height:20px}
+.strip{position:relative;margin-top:12px;max-height:92px;overflow-y:auto;text-align:center}
+.chip{display:inline-block;padding:5px 9px;margin:3px;border-radius:9px;border:1px solid var(--line);font-size:13px;color:var(--cream)}
+.chip.ok{color:var(--green);border-color:#245c3b}
+.chip.cur{color:#1b140b;background:var(--gold);border-color:var(--gold)}
+.octrow{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:-8px}
+.kbscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px;border:1px solid var(--line);background:#0e0b08;padding:0 0 2px}
+#kb{position:relative;height:190px;touch-action:pan-x;user-select:none;-webkit-user-select:none}
+.wk{position:absolute;top:0;bottom:0;background:#f4ecdc;border:1px solid #2a2117;border-radius:0 0 9px 9px;box-sizing:border-box;display:flex;align-items:flex-end;justify-content:center;padding-bottom:9px;font-size:13px;font-weight:500;color:#6f6352;transition:background .08s,box-shadow .08s}
+.wk sub{font-size:9px}
+.bk{position:absolute;top:0;width:26px;height:115px;background:#1a140e;border:1px solid #000;border-radius:0 0 6px 6px;z-index:2;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-size:9px;color:#8d8270;transition:background .08s,box-shadow .08s}
+.bk span{display:none}
+#kb.nonames span{visibility:hidden}
+.wk.hit{background:#e8d6a8}.bk.hit{background:#5a4a36}
+.wk.next,.bk.next{background:#d4a94f;color:#1b140b;box-shadow:0 0 18px #d4a94f;animation:pulse 1s ease-in-out infinite}
+.bk.next span,.bk.play span,.bk.hear span,.bk.good span{display:block;color:#1b140b}
+.wk.play,.bk.play{background:#d4a94f;color:#1b140b;box-shadow:0 0 14px #d4a94f}
+.wk.hear,.bk.hear{background:#e8a33d;color:#1b140b;box-shadow:0 0 14px #e8a33d}
+.wk.good,.bk.good{background:#5fcf80;color:#0f2a18;box-shadow:0 0 16px #5fcf80}
+.wk.bad,.bk.bad{background:#e2614b;color:#2a0d08}
+.btn.rec{background:#e2614b;border-color:#e2614b;color:#fff}
+@keyframes pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
 .headhint{text-align:center;font-size:12px;color:var(--muted);padding:2px 0 6px}
 .row{display:flex;gap:10px}
 .btn{flex:1;font-family:inherit;font-size:16px;font-weight:500;padding:15px 12px;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--cream);cursor:pointer}
@@ -69,11 +98,14 @@ footer{text-align:center;font-size:11px;letter-spacing:.18em;color:#6f6352;text-
   <header>
     <div class="brand">
       <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4c-7 6-11 12-11 19a11 11 0 0 0 22 0C31 16 27 10 20 4z" fill="#8b6a3e"/><path d="M20 4c-2 8-2 18 0 30" stroke="#d4a94f" stroke-width="1.6" fill="none"/><circle cx="20" cy="25" r="3.2" fill="#d4a94f"/></svg>
-      <div><div class="word">HAZEL</div><div class="sub">Tune · Guitar tuner</div></div>
+      <div><div class="word">HAZEL</div><div class="sub" id="brandSub">Tune · Guitar tuner</div></div>
     </div>
     <button class="pill on" id="autoBtn">Auto</button>
   </header>
 
+  <div class="seg"><button class="tab on" data-v="tuner">Tuner</button><button class="tab" data-v="piano">Piano</button></div>
+
+  <section id="tunerView">
   <div class="seg"><button class="mode on" data-m="6">6-string</button><button class="mode" data-m="12">12-string</button></div>
 
   <div class="banner" id="banner"></div>
@@ -107,8 +139,23 @@ footer{text-align:center;font-size:11px;letter-spacing:.18em;color:#6f6352;text-
     <button class="btn" id="refBtn">Play note</button>
   </div>
   <div class="row"><button class="btn" id="resetBtn" style="font-size:14px;padding:11px">Reset checkmarks</button></div>
+  </section>
 
-  <footer id="foot">Hazel Management · Standard tuning E A D G B E · v1.3</footer>
+  <section id="pianoView" style="display:none">
+    <div class="card pcard">
+      <div class="prow"><select id="songSel" aria-label="Song"></select><label class="chk"><input type="checkbox" id="namesChk" checked> Note names</label></div>
+      <div class="pnow" id="pNow">Tap the keys to play</div>
+      <div class="pstat" id="pStat">Pick a song, or tap Listen to learn one by ear.</div>
+      <div class="strip" id="strip"></div>
+    </div>
+    <div class="octrow"><button class="pill" id="octL">‹ Lower</button><span>3 octaves · C3 to C6</span><button class="pill" id="octR">Higher ›</button></div>
+    <div class="kbscroll" id="kbs"><div id="kb"></div></div>
+    <div class="row"><button class="btn primary" id="listenBtn">Listen</button><button class="btn" id="playSongBtn">Play song</button></div>
+    <div class="row"><button class="btn" id="practiceBtn">Practice</button><button class="btn" id="stopBtn">Stop</button></div>
+    <div class="tip">Listen learns a melody by ear: play a song near your phone, or hum or whistle it. It works best with one clear tune at a time, like a solo piano, a single voice or an instrument. Full songs with drums and chords can pick up wrong notes.</div>
+  </section>
+
+  <footer id="foot">Hazel Management · Standard tuning E A D G B E · v1.4</footer>
 </div>
 
 <script>
@@ -174,7 +221,7 @@ function paintHead(){STR.forEach((s,i)=>{const g=H.pegs[i],st=H.strs[i];if(!g)re
 function build(){buildHead();
  document.querySelectorAll('.mode').forEach(m=>m.classList.toggle('on',(m.dataset.m==='12')===twelve));
  $('tip12').style.display=twelve?'block':'none';
- $('foot').textContent=twelve?'Hazel Management · 12-string standard tuning · v1.3':'Hazel Management · Standard tuning E A D G B E · v1.3';}
+ $('foot').textContent=twelve?'Hazel Management · 12-string standard tuning · v1.4':'Hazel Management · Standard tuning E A D G B E · v1.4';}
 function setMode(m){twelve=m;STR=twelve?STR12:STR6;done=STR.map(()=>0);sel=0;live=-1;act={i:-1,col:null,dir:0};hist=[];inSince=0;try{localStorage.setItem('hazelTuneMode',twelve?'12':'6');}catch(e){}build();paint();}
 document.querySelectorAll('.mode').forEach(m=>m.onclick=()=>setMode(m.dataset.m==='12'));
 build();
@@ -226,8 +273,8 @@ $('startBtn').onclick=async()=>{
  if(timer){clearInterval(timer);timer=null;$('startBtn').textContent='Start tuning';$('status').textContent='Paused';return;}
  try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();await ctx.resume();}catch(e){}
  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){banner('The mic is blocked in this window, so the live needle can\'t hear you here. Open the Hazel Tune file in Chrome or Safari for the live tuner. You can still use Play note below to tune by ear.');return;}
- try{const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-  const src=ctx.createMediaStreamSource(stream);analyser=ctx.createAnalyser();analyser.fftSize=4096;src.connect(analyser);buf=new Float32Array(analyser.fftSize);
+ try{if(!analyser){const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+  const src=ctx.createMediaStreamSource(stream);analyser=ctx.createAnalyser();analyser.fftSize=4096;src.connect(analyser);buf=new Float32Array(analyser.fftSize);}
   timer=setInterval(tick,50);$('startBtn').textContent='Pause';$('status').textContent='Listening… pluck a string';$('banner').classList.remove('show');
  }catch(e){banner('The mic is blocked in this window, so the live needle can\'t hear you here. Open the Hazel Tune file in Chrome or Safari and allow the microphone. You can still use Play note below to tune by ear.');}
 };
@@ -238,5 +285,6 @@ $('refBtn').onclick=()=>{let i=auto?(live>=0?live:(nextUntuned()??0)):sel;pluck(
 paint();
 try{if('serviceWorker' in navigator&&location.protocol==='https:'){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!window.__hzr){window.__hzr=1;location.reload();}});navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{r.update();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')r.update();});}).catch(()=>{});}}catch(e){}
 </script>
+<script src="piano.js"></script>
 </body>
 </html>
