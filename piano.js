@@ -42,20 +42,24 @@ function loadRecs(){try{return JSON.parse(localStorage.getItem('hazelPianoRecs')
 function saveRecs(r){try{localStorage.setItem('hazelPianoRecs',JSON.stringify(r.slice(0,5)));}catch(e){}}
 function fillSongs(selectName){const s=$('songSel');s.innerHTML='<option value="free">Free play</option>';
  const g1=document.createElement('optgroup');g1.label='Songs';SONGS.forEach((x,i)=>{const o=new Option(x.name,'s'+i);g1.appendChild(o);});s.appendChild(g1);
- const recs=loadRecs();if(recs.length){const g2=document.createElement('optgroup');g2.label='Learned by ear';recs.forEach((x,i)=>g2.appendChild(new Option(x.name,'r'+i)));s.appendChild(g2);}
- if(selectName){const o=[...s.options].find(o=>o.text===selectName);if(o)s.value=o.value;}}
+ const recs=loadRecs();if(recs.length){const g2=document.createElement('optgroup');g2.label='Your songs';recs.forEach((x,i)=>g2.appendChild(new Option(x.name,'r'+i)));s.appendChild(g2);}
+ if(selectName){const o=[...s.options].find(o=>o.text===selectName);if(o)s.value=o.value;}
+ window.HZ_onSongsChanged&&HZ_onSongsChanged();}
 function pickSong(){stopAll();const v=$('songSel').value;
  song=v==='free'?null:v[0]==='s'?SONGS[+v.slice(1)]:loadRecs()[+v.slice(1)];idx=0;renderStrip();
  status(song?song.notes.length+' notes. Tap Play song to hear it, or Practice to play it yourself.':'Tap the keys to play, or pick a song.');
  if(song)scrollToKey(song.notes[0][0]);}
 
 /* ---------- note strip ---------- */
-function renderStrip(list){const el=$('strip');el.innerHTML='';(list||(song?song.notes:[])).forEach((n,k)=>{const c=document.createElement('span');c.className='chip';c.textContent=nn(n[0]);el.appendChild(c);});markStrip();}
-function markStrip(){const ch=$('strip').children;for(let k=0;k<ch.length;k++){ch[k].classList.toggle('ok',k<idx);ch[k].classList.toggle('cur',k===idx&&mode!=='free');}
+function renderStrip(list){const el=$('strip');el.innerHTML='';
+ if(!list&&song&&song.chords){song.chords.forEach(c=>{const x=document.createElement('span');x.className='chip';x.textContent=c.name;x.dataset.t=c.t;el.appendChild(x);});markStrip();return;}
+ (list||(song?song.notes:[])).forEach((n,k)=>{const c=document.createElement('span');c.className='chip';c.textContent=nn(n[0]);el.appendChild(c);});markStrip();}
+function markChordAt(t){const ch=$('strip').children;let k=-1;for(let i=0;i<ch.length;i++)if(+ch[i].dataset.t<=t)k=i;for(let i=0;i<ch.length;i++){ch[i].classList.toggle('ok',i<k);ch[i].classList.toggle('cur',i===k);}const c=ch[k],el=$('strip');if(c&&(c.offsetTop<el.scrollTop||c.offsetTop>el.scrollTop+el.clientHeight-30))el.scrollTop=c.offsetTop-8;}
+function markStrip(){if(song&&song.chords){if(mode!=='free'&&song.notes[idx])markChordAt(song.notes[idx][1]);return;}const ch=$('strip').children;for(let k=0;k<ch.length;k++){ch[k].classList.toggle('ok',k<idx);ch[k].classList.toggle('cur',k===idx&&mode!=='free');}
  const c=ch[idx];if(c&&mode!=='free'){const el=$('strip');if(c.offsetTop<el.scrollTop||c.offsetTop>el.scrollTop+el.clientHeight-30)el.scrollTop=c.offsetTop-8;}}
 
 /* ---------- playing ---------- */
-function press(m){playNote(m);flash(m,'hit',220);$('pNow').textContent=nn(m);
+function press(m){playNote(m);flash(m,'hit',220);if(window.HZ_onKey&&HZ_onKey(m))return;$('pNow').textContent=nn(m);
  if(mode==='practice'&&song){const t=song.notes[idx][0];
   if(m===t){keyEl[t].classList.remove('next');flash(m,'good',380);idx++;markStrip();if(idx>=song.notes.length)finish();else cue();}
   else{flash(m,'bad',380);status('Not quite. Find the glowing key: '+nn(t));}}}
@@ -73,12 +77,14 @@ function practice(){stopAll();if(!song){status('Pick a song first, or tap Listen
 function stopAll(){playTimers.forEach(clearTimeout);playTimers=[];if(listenTimer)stopListen();mode='free';clearKeys();markStrip();}
 
 /* ---------- listen & learn ---------- */
-async function listen(){if(listenTimer){stopListen();return;}stopAll();A();
- if(!analyser){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){status('The mic is blocked here. Open Hazel Tune in Safari or Chrome to use Listen.');return;}
-  try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-   const src=ctx.createMediaStreamSource(st);analyser=ctx.createAnalyser();analyser.fftSize=4096;src.connect(analyser);buf=new Float32Array(analyser.fftSize);}
-  catch(e){status('Allow the microphone to use Listen (Settings → Safari → Microphone).');return;}}
- if(timer){clearInterval(timer);timer=null;$('startBtn').textContent='Start tuning';}
+async function ensureMic(say){A();if(analyser)return true;const msg=say||status;
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){msg('The mic is blocked here. Open Hazel Tune in Safari or Chrome to use the microphone.');return false;}
+ try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+  const src=ctx.createMediaStreamSource(st);analyser=ctx.createAnalyser();analyser.fftSize=4096;src.connect(analyser);buf=new Float32Array(analyser.fftSize);return true;}
+ catch(e){msg('Allow the microphone first (Settings → Safari → Microphone).');return false;}}
+function pauseTuner(){if(timer){clearInterval(timer);timer=null;$('startBtn').textContent='Start tuning';$('status').textContent='Paused';}}
+async function listen(){if(listenTimer){stopListen();return;}stopAll();window.HZ_stopLesson&&HZ_stopLesson();if(!(await ensureMic()))return;
+ pauseTuner();
  rec=[];cand=-1;candN=0;cur=null;env=0;quietN=0;mode='listen';listenStart=performance.now();$('strip').innerHTML='';
  listenTimer=setInterval(lTick,30);$('listenBtn').textContent='Stop listening';$('listenBtn').classList.add('rec');
  status('Listening… play the song or hum the tune near your phone, then tap Stop listening.');$('pNow').textContent='Listening';}
@@ -100,14 +106,19 @@ function stopListen(){clearInterval(listenTimer);listenTimer=null;endCur(perform
  status('Got '+s.notes.length+' notes. Tap Practice to learn it, or Play song to hear it back.');$('pNow').textContent='Learned!';}
 
 /* ---------- view switching ---------- */
-function view(v){$('tunerView').style.display=v==='tuner'?'':'none';$('pianoView').style.display=v==='piano'?'':'none';
+function view(v){window.HZ_stopLesson&&HZ_stopLesson();window.HZ_stopArrange&&HZ_stopArrange(true);$('tunerView').style.display=v==='tuner'?'':'none';$('pianoView').style.display=v==='piano'?'':'none';$('guitarView').style.display=v==='guitar'?'':'none';
  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
- $('autoBtn').style.visibility=v==='tuner'?'visible':'hidden';$('foot').textContent=v==='piano'?'Hazel Management · Piano · v1.4':(twelve?'Hazel Management · 12-string standard tuning · v1.4':'Hazel Management · Standard tuning E A D G B E · v1.4');$('brandSub').textContent=v==='tuner'?'Tune · Guitar tuner':'Keys · Piano';
- if(v==='piano'){if(timer){clearInterval(timer);timer=null;$('startBtn').textContent='Start tuning';$('status').textContent='Paused';}setTimeout(()=>scrollToKey(song?song.notes[0][0]:60,!song),30);}
+ $('autoBtn').style.visibility=v==='tuner'?'visible':'hidden';$('foot').textContent=v==='piano'?'Hazel Management · Piano · v1.5':v==='guitar'?'Hazel Management · Guitar · v1.5':(twelve?'Hazel Management · 12-string standard tuning · v1.5':'Hazel Management · Standard tuning E A D G B E · v1.5');$('brandSub').textContent=v==='tuner'?'Tune · Guitar tuner':v==='piano'?'Keys · Piano':'Play · Guitar';
+ if(v!=='tuner')pauseTuner();if(v==='piano'){setTimeout(()=>scrollToKey(song?song.notes[0][0]:60,!song),30);}
  else stopAll();try{localStorage.setItem('hazelView',v);}catch(e){}}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>view(t.dataset.v));
 $('listenBtn').onclick=listen;$('playSongBtn').onclick=playSong;$('practiceBtn').onclick=practice;$('stopBtn').onclick=()=>{stopAll();status('Stopped.');};
 $('songSel').onchange=pickSong;$('namesChk').onchange=e=>kb.classList.toggle('nonames',!e.target.checked);
 $('octL').onclick=()=>kbs.scrollBy({left:-7*W,behavior:'smooth'});$('octR').onclick=()=>kbs.scrollBy({left:7*W,behavior:'smooth'});
-buildKb();fillSongs();let v0='tuner';try{v0=localStorage.getItem('hazelView')||'tuner';}catch(e){}view(v0);
+buildKb();
+window.HZ={SONGS,loadRecs,saveRecs,fillSongs,keyEl,playNote,nn,stopAll,scrollToKey,ensureMic,pauseTuner,status,view,W,LOW,HIGH,clearKeys,flash,
+ getSong:()=>song,getSel:()=>$('songSel').value,
+ songByValue:v=>v==='free'?null:v[0]==='s'?SONGS[+v.slice(1)]:loadRecs()[+v.slice(1)],
+ selectSong:name=>{fillSongs(name);pickSong();},renderStrip,markChordAt};
+window.addEventListener('load',()=>{fillSongs();let v0='tuner';try{v0=localStorage.getItem('hazelView')||'tuner';}catch(e){}view(v0);window.HZ_afterInit&&HZ_afterInit();});
 })();

@@ -78,6 +78,16 @@ header{display:flex;align-items:center;justify-content:space-between}
 .wk.bad,.bk.bad{background:#e2614b;color:#2a0d08}
 .btn.rec{background:#e2614b;border-color:#e2614b;color:#fff}
 @keyframes pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
+.seg.seg3{grid-template-columns:1fr 1fr 1fr}
+.frow{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-bottom:-6px}
+.frow select,.fullsel{flex:1;font-family:inherit;font-size:14px;padding:9px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--cream)}
+.fullsel{width:100%;font-size:15px;padding:10px;background:var(--bg)}
+#roll{display:block}
+.kbscroll.following{border-color:var(--gold)}
+.tabwrap{margin-top:12px;border:1px solid var(--line);border-radius:14px;background:#0e0b08;overflow:hidden}
+#tab{display:block}
+.gchord{text-align:center;font-size:15px;color:var(--cream);min-height:20px}
+.tip b{color:var(--cream);font-weight:500}
 .headhint{text-align:center;font-size:12px;color:var(--muted);padding:2px 0 6px}
 .row{display:flex;gap:10px}
 .btn{flex:1;font-family:inherit;font-size:16px;font-weight:500;padding:15px 12px;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--cream);cursor:pointer}
@@ -103,7 +113,7 @@ footer{text-align:center;font-size:11px;letter-spacing:.18em;color:#6f6352;text-
     <button class="pill on" id="autoBtn">Auto</button>
   </header>
 
-  <div class="seg"><button class="tab on" data-v="tuner">Tuner</button><button class="tab" data-v="piano">Piano</button></div>
+  <div class="seg seg3"><button class="tab on" data-v="tuner">Tuner</button><button class="tab" data-v="piano">Piano</button><button class="tab" data-v="guitar">Guitar</button></div>
 
   <section id="tunerView">
   <div class="seg"><button class="mode on" data-m="6">6-string</button><button class="mode" data-m="12">12-string</button></div>
@@ -149,13 +159,29 @@ footer{text-align:center;font-size:11px;letter-spacing:.18em;color:#6f6352;text-
       <div class="strip" id="strip"></div>
     </div>
     <div class="octrow"><button class="pill" id="octL">‹ Lower</button><span>3 octaves · C3 to C6</span><button class="pill" id="octR">Higher ›</button></div>
-    <div class="kbscroll" id="kbs"><div id="kb"></div></div>
-    <div class="row"><button class="btn primary" id="listenBtn">Listen</button><button class="btn" id="playSongBtn">Play song</button></div>
-    <div class="row"><button class="btn" id="practiceBtn">Practice</button><button class="btn" id="stopBtn">Stop</button></div>
-    <div class="tip">Listen learns a melody by ear: play a song near your phone, or hum or whistle it. It works best with one clear tune at a time, like a solo piano, a single voice or an instrument. Full songs with drums and chords can pick up wrong notes.</div>
+    <div class="kbscroll" id="kbs"><canvas id="roll" style="display:none"></canvas><div id="kb"></div></div>
+    <div class="frow"><span>Follow</span><select id="fMode"><option value="wait">Wait for me</option><option value="along">Play along</option></select><select id="fSpeed"><option value="0.5">50% speed</option><option value="0.75">75% speed</option><option value="1" selected>100% speed</option></select></div>
+    <div class="row"><button class="btn primary" id="followBtn">Follow along</button><button class="btn" id="playSongBtn">Play song</button></div>
+    <div class="row"><button class="btn" id="arrBtn">Song → Piano</button><button class="btn" id="listenBtn">Listen</button></div>
+    <div class="row"><button class="btn" id="practiceBtn">Practice</button><button class="btn" id="shareBtn">Send a tune</button></div>
+    <div class="row"><button class="btn" id="stopBtn" style="font-size:14px;padding:11px">Stop</button></div>
+    <div class="tip"><b>Follow along:</b> set your phone on the piano like sheet music. Notes fall toward the keys; play them on your real piano and the mic checks you. <b>Song → Piano:</b> play any song out loud and it builds a dueling-piano version: left hand turns the drums into a bass-and-chord rhythm, right hand plays the melody or the chords. <b>Listen:</b> hum, whistle or play one melody to learn it note by note. <b>Send a tune:</b> text any song to a friend as a link.</div>
   </section>
 
-  <footer id="foot">Hazel Management · Standard tuning E A D G B E · v1.4</footer>
+  <section id="guitarView" style="display:none">
+    <div class="card">
+      <select id="gSel" aria-label="Song" class="fullsel"></select>
+      <div class="pnow" id="gNow">Pick a song</div>
+      <div class="gchord" id="gChord"></div>
+      <div class="pstat" id="gStat">Set your phone in front of you. Notes slide toward the gold line; play them on your guitar.</div>
+      <div class="tabwrap"><canvas id="tab"></canvas></div>
+    </div>
+    <div class="frow"><span>Mode</span><select id="gMode"><option value="wait">Wait for me</option><option value="along">Play along</option></select><select id="gSpeed"><option value="0.5">50% speed</option><option value="0.75">75% speed</option><option value="1" selected>100% speed</option></select></div>
+    <div class="row"><button class="btn primary" id="gStart">Start</button></div>
+    <div class="tip">Each circle is a note: the line it sits on is the string (thin high E on top, thick low E on the bottom) and the number is the fret, 0 means open. Songs you teach the Piano tab show up here too, with their chords.</div>
+  </section>
+
+  <footer id="foot">Hazel Management · Standard tuning E A D G B E · v1.5</footer>
 </div>
 
 <script>
@@ -221,7 +247,7 @@ function paintHead(){STR.forEach((s,i)=>{const g=H.pegs[i],st=H.strs[i];if(!g)re
 function build(){buildHead();
  document.querySelectorAll('.mode').forEach(m=>m.classList.toggle('on',(m.dataset.m==='12')===twelve));
  $('tip12').style.display=twelve?'block':'none';
- $('foot').textContent=twelve?'Hazel Management · 12-string standard tuning · v1.4':'Hazel Management · Standard tuning E A D G B E · v1.4';}
+ $('foot').textContent=twelve?'Hazel Management · 12-string standard tuning · v1.5':'Hazel Management · Standard tuning E A D G B E · v1.5';}
 function setMode(m){twelve=m;STR=twelve?STR12:STR6;done=STR.map(()=>0);sel=0;live=-1;act={i:-1,col:null,dir:0};hist=[];inSince=0;try{localStorage.setItem('hazelTuneMode',twelve?'12':'6');}catch(e){}build();paint();}
 document.querySelectorAll('.mode').forEach(m=>m.onclick=()=>setMode(m.dataset.m==='12'));
 build();
@@ -286,5 +312,7 @@ paint();
 try{if('serviceWorker' in navigator&&location.protocol==='https:'){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!window.__hzr){window.__hzr=1;location.reload();}});navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{r.update();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')r.update();});}).catch(()=>{});}}catch(e){}
 </script>
 <script src="piano.js"></script>
+<script src="lesson.js"></script>
+<script src="arrange.js"></script>
 </body>
 </html>
